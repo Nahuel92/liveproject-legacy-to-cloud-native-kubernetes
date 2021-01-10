@@ -8,7 +8,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class ProfileService {
-    private ProfileRepository profileRepository;
+    private final ProfileRepository profileRepository;
 
     @Autowired
     public ProfileService(ProfileRepository profileRepository) {
