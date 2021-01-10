@@ -6,25 +6,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
-@Controller
+@RestController
 @Slf4j
 @RequestMapping("/profile")
 public class ProfileController {
-
-    private ProfileService profileService;
+    private final ProfileService profileService;
 
     @Value("${images.directory:/tmp}")
     private String uploadFolder;
@@ -33,47 +27,32 @@ public class ProfileController {
     private Resource defaultImage;
 
     @Autowired
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(final ProfileService profileService) {
         this.profileService = profileService;
     }
 
-    @RequestMapping(value = "/register", method = GET)
-    public String showRegistrationForm(Model model) {
-        model.addAttribute(new Profile());
-        return "registerForm";
+    @PostMapping
+    public void saveUser(@RequestBody @Validated final Profile newProfile) {
+        profileService.save(newProfile);
     }
 
-    @RequestMapping(value = "/register", method = POST)
+    @GetMapping(value = "/{username}")
+    public ResponseEntity<Profile> showProfile(@PathVariable @NotNull final String username) {
+        log.debug("Reading model for: '{}'", username);
+        return Optional.ofNullable(profileService.getProfile(username))
+                .map(ResponseEntity::ok)
+                .orElseGet(ResponseEntity.notFound()::build);
+    }
+
+    @PutMapping(value = "/{username}")
     @Transactional
-    public String processRegistration(
-            @Valid Profile profile,
-            Errors errors) {
-        if (errors.hasErrors()) {
-            return "registerForm";
-        }
-
-        profileService.save(profile);
-        return "redirect:/profile/" + profile.getUsername();
-    }
-
-    @RequestMapping(value = "/{username}", method = GET)
-    public String showProfile(@PathVariable String username, Model model) {
-        log.debug("Reading model for: "+username);
-        Profile profile = profileService.getProfile(username);
-        model.addAttribute(profile);
-        return "profile";
-    }
-
-    @RequestMapping(value = "/{username}", method = POST)
-    @Transactional
-    public String updateProfile(@PathVariable String username, @ModelAttribute Profile profile, Model model) {
-        if (!username.equals(profile.getUsername())) {
+    public void updateProfile(@PathVariable @NotNull final String username,
+                              @RequestBody @Validated Profile user) {
+        if (!username.equals(user.getUsername())) {
             throw new RuntimeException("Cannot change username for Profile");
         }
-        log.debug("Updating model for: "+username);
-        profileService.update(profile);
-        model.addAttribute(profile);
-        return "profile";
+        log.debug("Updating model for: '{}' ", username);
+        profileService.update(user);
     }
 
 }
