@@ -43,7 +43,7 @@ public class ProfileService {
             dirty = true;
         }
         if (dirty) {
-            profileRepository.save(profile);
+            profileRepository.save(dbProfile);
         }
     }
 }

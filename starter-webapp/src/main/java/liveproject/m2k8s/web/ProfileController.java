@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -32,8 +33,9 @@ public class ProfileController {
     }
 
     @PostMapping
-    public void saveUser(@RequestBody @Validated final Profile newProfile) {
+    public ResponseEntity<Profile> saveUser(@RequestBody @Validated final Profile newProfile) {
         profileService.save(newProfile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newProfile);
     }
 
     @GetMapping(value = "/{username}")
@@ -46,13 +48,14 @@ public class ProfileController {
 
     @PutMapping(value = "/{username}")
     @Transactional
-    public void updateProfile(@PathVariable @NotNull final String username,
-                              @RequestBody @Validated Profile user) {
+    public ResponseEntity<Profile> updateProfile(@PathVariable @NotNull final String username,
+                                                 @RequestBody @Validated Profile user) {
         if (!username.equals(user.getUsername())) {
             throw new RuntimeException("Cannot change username for Profile");
         }
         log.debug("Updating model for: '{}' ", username);
         profileService.update(user);
+        return ResponseEntity.ok(user);
     }
 
 }

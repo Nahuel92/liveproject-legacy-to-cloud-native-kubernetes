@@ -10,7 +10,7 @@
     <groupId>com.manning.pl</groupId>
     <artifactId>profile-api</artifactId>
     <version>1.0</version>
-    <name>Profile Management</name>
+    <name>profile-management</name>
     <description>Profile management</description>
     <packaging>jar</packaging>
 
@@ -108,6 +108,21 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <configuration>
+                    <repository>
+                        ${project.name}/${project.artifactId}
+                    </repository>
+                    <buildArgs>
+                        <JAR_FILE>
+                            target/${project.build.finalName}.jar
+                        </JAR_FILE>
+                    </buildArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>

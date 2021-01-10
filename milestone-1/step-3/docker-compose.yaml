@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  app:
+    container_name: profile-management
+    image: profile-management/profile-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/profiles?autoReconnect=true&useSSL=false
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+    restart: 'no'
+
+  mysql:
+    container_name: mysql
+    image: mysql:8.0.22
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: profiles
+    ports:
+      - 3306:3306
+    volumes:
+    - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
